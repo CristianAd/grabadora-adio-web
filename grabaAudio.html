@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Grabación de audio</title>
+</head>
+<body>
+     
+    <div id="hiddenText" style="display: none;">Este es el texto que será leído y grabado como audio.
+        Este es el texto que será leído y grabado como audio.
+        Este es el texto que será leído y grabado como audio.Este es el texto que será leído y grabado como audio.
+    </div>
+
+    <button id="speakButton">Leer texto</button>
+    <button id="recordButton">Grabar audio</button>
+    <button id="stopButton">Detener grabación</button>
+    <a id="downloadLink" href="#" download="grabacion_audio.wav" style="display: none;">Descargar audio</a>
+    
+    
+
+
+
+
+  <script>
+     const speakButton = document.getElementById('speakButton');
+const recordButton = document.getElementById('recordButton');
+const stopButton = document.getElementById('stopButton');
+const downloadLink = document.getElementById('downloadLink');
+const hiddenText = document.getElementById('hiddenText');
+let mediaRecorder;
+let chunks = [];
+
+speakButton.addEventListener('click', () => {
+  const speech = new SpeechSynthesisUtterance(hiddenText.innerText);
+  speech.lang = 'es-ES';
+  window.speechSynthesis.speak(speech);
+});
+
+recordButton.addEventListener('click', () => {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      mediaRecorder = new MediaRecorder(stream);
+      chunks = [];
+
+      mediaRecorder.addEventListener('dataavailable', (event) => {
+        chunks.push(event.data);
+      });
+
+      mediaRecorder.start();
+      recordButton.disabled = true;
+      stopButton.disabled = false;
+    })
+    .catch(err => {
+      console.error('Error al acceder al dispositivo de audio:', err);
+    });
+});
+
+stopButton.addEventListener('click', () => {
+  mediaRecorder.stop();
+
+  mediaRecorder.addEventListener('stop', () => {
+    const blob = new Blob(chunks, { type: 'audio/wav' });
+    const url = URL.createObjectURL(blob);
+
+    downloadLink.href = url;
+    downloadLink.style.display = 'block';
+  });
+});
+
+downloadLink.addEventListener('click', () => {
+  setTimeout(() => {
+    URL.revokeObjectURL(downloadLink.href);
+    downloadLink.style.display = 'none';
+  }, 100);
+});
+
+
+  </script>
+</body>
+</html>
